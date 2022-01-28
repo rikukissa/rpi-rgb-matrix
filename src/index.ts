@@ -48,7 +48,10 @@ async function drawHandler(
   })
   req.on("end", async () => {
     try {
+      console.log("Reading file to Jimp")
+
       const jimp = await Jimp.read(Buffer.concat(chunks))
+      console.log("Creating a non-transparent bitmap")
       const nonAlphaImage = prepareImageForMatrix(jimp)
       currentImage = nonAlphaImage
     } catch (error) {
@@ -57,6 +60,7 @@ async function drawHandler(
       return
     }
     try {
+      console.log("Drawing the new image")
       drawBuffer(currentImage)
     } catch (error) {
       res.statusCode = 500

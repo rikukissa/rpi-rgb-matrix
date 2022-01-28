@@ -34,6 +34,7 @@ export function drawBuffer(array: Uint8Array) {
 
       retryTimeout = setTimeout(() => drawBuffer(array), 10000)
     }
+    console.log("Drawing buffer")
     matrix
       .clear()
       .brightness(30)
