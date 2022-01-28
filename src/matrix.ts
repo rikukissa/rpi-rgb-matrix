@@ -34,11 +34,11 @@ export function drawBuffer(array: Uint8Array) {
 
       retryTimeout = setTimeout(() => drawBuffer(array), 10000)
     }
-    console.log("Drawing buffer")
-    matrix
-      .clear()
-      .brightness(30)
-      .drawBuffer(Buffer.of(...array), 32, 32)
-    matrix.sync()
   }
+  console.log("Drawing buffer")
+  matrix
+    .clear()
+    .brightness(30)
+    .drawBuffer(Buffer.of(...array), 32, 32)
+  matrix.sync()
 }
