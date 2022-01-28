@@ -3,7 +3,9 @@ import { LedMatrix, GpioMapping, LedMatrixInstance } from "rpi-led-matrix"
 let matrix: LedMatrixInstance
 let retryTimeout: NodeJS.Timeout
 
-function drawBufferToDevMatrix(array: Uint8Array) {}
+function drawBufferToDevMatrix(array: Uint8Array) {
+  console.log("Not rendering anything in dev mode")
+}
 
 export function drawBuffer(array: Uint8Array) {
   if (process.env.NODE_ENV !== "production") {

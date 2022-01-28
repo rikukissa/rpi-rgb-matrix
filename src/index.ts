@@ -99,6 +99,7 @@ async function currentImageHandler(
   const buffer = await image.getBufferAsync(Jimp.MIME_PNG)
   res.setHeader("Content-Type", Jimp.MIME_PNG)
   res.write(buffer)
+  res.end()
 }
 
 http
