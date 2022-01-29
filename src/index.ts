@@ -30,18 +30,36 @@ async function handleGif(buffer: ArrayBuffer) {
   const frames = decompressFrames(parseGIF(buffer), true)
 
   const resizedFrames: Animation["data"] = []
+
+  let prevImage
+
   for (const frame of frames) {
-    const image = await Jimp.create(frame.dims.width, frame.dims.height)
+    let image = await Jimp.create(frames[0].dims.width, frames[0].dims.height)
 
     for (let x = 0; x < frame.dims.width; x++) {
       for (let y = 0; y < frame.dims.height; y++) {
-        const dataIndex = y * frame.dims.width + x
-        const [r, g, b] = frame.colorTable[frame.pixels[dataIndex]]
-        image.setPixelColour(Jimp.rgbaToInt(r, g, b, 255), x, y)
+        const dataIndex = y * frame.dims.width * 4 + x * 4
+
+        image.setPixelColour(
+          Jimp.rgbaToInt(
+            frame.patch[dataIndex + 0],
+            frame.patch[dataIndex + 1],
+            frame.patch[dataIndex + 2],
+            frame.patch[dataIndex + 3]
+          ),
+          x + frame.dims.left,
+          y + frame.dims.top
+        )
       }
     }
+    if (prevImage && frame.disposalType !== 2) {
+      image = prevImage.composite(image, 0, 0)
+    }
+
+    prevImage = image
+
     resizedFrames.push({
-      buffer: prepareImageForMatrix(image),
+      buffer: prepareImageForMatrix(image.clone()),
       delay: frame.delay,
     })
   }
@@ -57,8 +75,6 @@ async function drawHandler(
 
   req.on("data", (chunk) => {
     if (Buffer.concat(chunks).length > 1000000) {
-      console.log(req.headers)
-
       res.statusCode = 413
       res.end()
       req.destroy()
@@ -110,27 +126,30 @@ async function currentImageHandler(
     return
   }
 
-  const imageData =
+  const imageFrameData =
     currentBufferItem.type === "image"
-      ? currentBufferItem.data
-      : currentBufferItem.data[0].buffer
+      ? [currentBufferItem.data]
+      : currentBufferItem.data.map((i) => i.buffer)
 
-  const image = await Jimp.create(32, 32)
+  const image = await Jimp.create(32 * imageFrameData.length, 32)
 
-  for (let x = 0; x < 32; x++) {
-    for (let y = 0; y < 32; y++) {
-      const dataIndex = y * 32 * 3 + x * 3
+  for (let i = 0; i < imageFrameData.length; i++) {
+    const imageData = imageFrameData[i]
+    for (let x = 0; x < 32; x++) {
+      for (let y = 0; y < 32; y++) {
+        const dataIndex = y * 32 * 3 + x * 3
 
-      image.setPixelColour(
-        Jimp.rgbaToInt(
-          imageData[dataIndex],
-          imageData[dataIndex + 1],
-          imageData[dataIndex + 2],
-          255
-        ),
-        x,
-        y
-      )
+        image.setPixelColour(
+          Jimp.rgbaToInt(
+            imageData[dataIndex],
+            imageData[dataIndex + 1],
+            imageData[dataIndex + 2],
+            255
+          ),
+          i * 32 + x,
+          y
+        )
+      }
     }
   }
   const buffer = await image.getBufferAsync(Jimp.MIME_PNG)
@@ -146,7 +165,7 @@ http
       if (req.method === "GET" && req.url === "/image") {
         return currentImageHandler(req, res)
       }
-      if (req.method === "POST" && req.url === "/draw") {
+      if (req.method === "POST" && req.url === "/queue") {
         return drawHandler(req, res)
       }
     } catch (error) {
@@ -175,4 +194,4 @@ async function loadDefaultGif() {
 }
 
 loadDefaultGif()
-loadDefaultImage()
+// loadDefaultImage()

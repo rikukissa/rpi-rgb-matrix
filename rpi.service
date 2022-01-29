@@ -4,7 +4,7 @@ Description=RPI RGB Grid
 [Service]
 Environment=NODE_PORT=3000
 Environment=NODE_ENV=production
-ExecStart=sudo --preserve-env=NODE_PORT,NODE_ENV -H -u pi /bin/bash -c "cd /home/pi/apps/rpi-rgb-screen && git pull && /usr/local/bin/npm install --production && /usr/local/bin/npm run build && sudo --preserve-env=NODE_PORT,NODE_ENV /usr/local/bin/node dist/index.js"
+ExecStart=sudo --preserve-env=NODE_PORT,NODE_ENV -H -u pi /bin/bash -c "cd /home/pi/apps/rpi-rgb-screen && git pull && /usr/local/bin/npm install --production && /usr/local/bin/npm run build && /usr/local/bin/node dist/index.js"
 Restart=on-failure
 RestartSec=1
 
