@@ -37,6 +37,7 @@ function queueHandler() {
   try {
     matrix = getMatrix()
   } catch (error) {
+    console.error(error)
     console.log("Matrix creating failed. Trying again in 10 seconds")
     retryTimeout = setTimeout(() => queueHandler(), 3000)
     return

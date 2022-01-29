@@ -83,6 +83,7 @@ async function drawHandler(
         drawImage(nonAlphaImage)
       }
     } catch (error) {
+      console.error(error)
       res.statusCode = 500
       res.end()
       return
