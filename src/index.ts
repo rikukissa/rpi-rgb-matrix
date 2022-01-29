@@ -1,9 +1,9 @@
 import http from "http"
 import Jimp from "jimp"
 import { join } from "path"
-import { drawImage, playAnimation, Animation } from "./matrix"
+import { writeFileSync, readFileSync, existsSync } from "fs"
+import { drawImage, playAnimation, Animation, queue } from "./matrix"
 import { parseGIF, decompressFrames } from "gifuct-js"
-import { readFileSync } from "fs"
 
 function removeAlpha(array: Uint8Array) {
   const result = []
@@ -25,20 +25,6 @@ function prepareImageForMatrix(jimp: Jimp) {
   const nonAlphaImage = removeAlpha(colorArray)
   return nonAlphaImage
 }
-
-let currentImage: Uint8Array | null = null
-async function loadDefaultImage() {
-  const jimp = await Jimp.read(join(__dirname, "../diamond.png"))
-  currentImage = prepareImageForMatrix(jimp)
-  drawImage(currentImage)
-}
-async function loadDefaultGif() {
-  const buffer = readFileSync(join(__dirname, "../mario_walk.gif"))
-  handleGif(buffer)
-}
-
-loadDefaultGif()
-loadDefaultImage()
 
 async function handleGif(buffer: ArrayBuffer) {
   const frames = decompressFrames(parseGIF(buffer), true)
@@ -68,8 +54,11 @@ async function drawHandler(
   res: http.ServerResponse
 ) {
   const chunks: Buffer[] = []
+
   req.on("data", (chunk) => {
     if (Buffer.concat(chunks).length > 1000000) {
+      console.log(req.headers)
+
       res.statusCode = 413
       res.end()
       req.destroy()
@@ -79,25 +68,26 @@ async function drawHandler(
   })
   req.on("end", async () => {
     try {
-      console.log("Reading file to Jimp")
-
-      const jimp = await Jimp.read(Buffer.concat(chunks))
-      console.log("Creating a non-transparent bitmap")
-      const nonAlphaImage = prepareImageForMatrix(jimp)
-      currentImage = nonAlphaImage
-    } catch (error) {
-      res.statusCode = 400
-      res.end()
-      return
-    }
-    try {
-      console.log("Drawing the new image")
-      drawImage(currentImage)
+      const data = Buffer.concat(chunks)
+      if (req.headers["content-type"] === "image/gif") {
+        console.log("Submitting a gif to buffer")
+        handleGif(data)
+        writeFileSync(join(__dirname, "../current.gif"), data)
+      } else {
+        console.log("Reading an image file to Jimp")
+        const jimp = await Jimp.read(data)
+        console.log("Creating a non-transparent bitmap")
+        const nonAlphaImage = prepareImageForMatrix(jimp)
+        console.log("Drawing the new image")
+        writeFileSync(join(__dirname, "../current.png"), data)
+        drawImage(nonAlphaImage)
+      }
     } catch (error) {
       res.statusCode = 500
       res.end()
       return
     }
+
     res.statusCode = 200
     res.end()
   })
@@ -112,6 +102,18 @@ async function currentImageHandler(
   _req: http.IncomingMessage,
   res: http.ServerResponse
 ) {
+  const currentBufferItem = queue[0]
+  if (!currentBufferItem) {
+    res.statusCode = 404
+    res.end()
+    return
+  }
+
+  const imageData =
+    currentBufferItem.type === "image"
+      ? currentBufferItem.data
+      : currentBufferItem.data[0].buffer
+
   const image = await Jimp.create(32, 32)
 
   for (let x = 0; x < 32; x++) {
@@ -120,9 +122,9 @@ async function currentImageHandler(
 
       image.setPixelColour(
         Jimp.rgbaToInt(
-          currentImage![dataIndex],
-          currentImage![dataIndex + 1],
-          currentImage![dataIndex + 2],
+          imageData[dataIndex],
+          imageData[dataIndex + 1],
+          imageData[dataIndex + 2],
           255
         ),
         x,
@@ -130,11 +132,11 @@ async function currentImageHandler(
       )
     }
   }
-
   const buffer = await image.getBufferAsync(Jimp.MIME_PNG)
   res.setHeader("Content-Type", Jimp.MIME_PNG)
   res.write(buffer)
   res.end()
+  return
 }
 
 http
@@ -153,3 +155,23 @@ http
     }
   })
   .listen(process.env.NODE_PORT || 3000)
+
+let currentImage: Uint8Array | null = null
+async function loadDefaultImage() {
+  if (!existsSync(join(__dirname, "../current.png"))) {
+    return
+  }
+  const jimp = await Jimp.read(join(__dirname, "../current.png"))
+  currentImage = prepareImageForMatrix(jimp)
+  drawImage(currentImage)
+}
+async function loadDefaultGif() {
+  if (!existsSync(join(__dirname, "../current.gif"))) {
+    return
+  }
+  const buffer = readFileSync(join(__dirname, "../current.gif"))
+  handleGif(buffer)
+}
+
+loadDefaultGif()
+loadDefaultImage()

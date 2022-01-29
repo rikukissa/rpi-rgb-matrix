@@ -14,18 +14,19 @@ export type Animation = {
 
 let queueLoopRunning = false
 
-const queue: Array<Animation | Image> = []
+export const queue: Array<Animation | Image> = []
 
 function pushToQueue(item: Animation | Image) {
+  if (process.env.NODE_ENV !== "production") {
+    queue.push(item)
+    return
+  }
+
   if (!queueLoopRunning) {
     queueHandler()
     queueLoopRunning = true
   }
   queue.push(item)
-}
-
-function drawBufferToDevMatrix() {
-  console.log("Not rendering anything in dev mode")
 }
 
 let retryTimeout: NodeJS.Timeout
@@ -111,15 +112,9 @@ function getMatrix() {
 }
 
 export function playAnimation(animation: Animation["data"]) {
-  if (process.env.NODE_ENV !== "production") {
-    return drawBufferToDevMatrix()
-  }
   pushToQueue({ type: "animation", data: animation })
 }
 
 export function drawImage(array: Uint8Array) {
-  if (process.env.NODE_ENV !== "production") {
-    return drawBufferToDevMatrix()
-  }
   pushToQueue({ type: "image", data: array })
 }
