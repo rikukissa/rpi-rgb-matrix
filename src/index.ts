@@ -35,7 +35,7 @@ async function handleGif(buffer: ArrayBuffer) {
 
     for (let x = 0; x < frame.dims.width; x++) {
       for (let y = 0; y < frame.dims.height; y++) {
-        const dataIndex = y * frame.dims.height + x
+        const dataIndex = y * frame.dims.width + x
         const [r, g, b] = frame.colorTable[frame.pixels[dataIndex]]
         image.setPixelColour(Jimp.rgbaToInt(r, g, b, 255), x, y)
       }
