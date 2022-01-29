@@ -45,6 +45,10 @@ function queueHandler() {
   let currentStartedShowing = Date.now()
 
   matrix.afterSync((mat, dt, t) => {
+    if (queue.length === 0) {
+      setTimeout(() => matrix.sync(), 0)
+      return
+    }
     let currentQueueItem = queue[0]
 
     const timeToChange =
