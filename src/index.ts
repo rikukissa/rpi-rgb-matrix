@@ -1,7 +1,7 @@
 import http from "http"
 import Jimp from "jimp"
 import { join } from "path"
-import { drawBuffer, playAnimation, Animation } from "./matrix"
+import { drawImage, playAnimation, Animation } from "./matrix"
 import { parseGIF, decompressFrames } from "gifuct-js"
 import { readFileSync } from "fs"
 
@@ -30,19 +30,20 @@ let currentImage: Uint8Array | null = null
 async function loadDefaultImage() {
   const jimp = await Jimp.read(join(__dirname, "../diamond.png"))
   currentImage = prepareImageForMatrix(jimp)
-  drawBuffer(currentImage)
+  drawImage(currentImage)
 }
 async function loadDefaultGif() {
   const buffer = readFileSync(join(__dirname, "../mario_walk.gif"))
   handleGif(buffer)
 }
-// loadDefaultImage()
+
 loadDefaultGif()
+loadDefaultImage()
 
 async function handleGif(buffer: ArrayBuffer) {
   const frames = decompressFrames(parseGIF(buffer), true)
 
-  const resizedFrames: Animation = []
+  const resizedFrames: Animation["data"] = []
   for (const frame of frames) {
     const image = await Jimp.create(frame.dims.width, frame.dims.height)
 
@@ -91,7 +92,7 @@ async function drawHandler(
     }
     try {
       console.log("Drawing the new image")
-      drawBuffer(currentImage)
+      drawImage(currentImage)
     } catch (error) {
       res.statusCode = 500
       res.end()
