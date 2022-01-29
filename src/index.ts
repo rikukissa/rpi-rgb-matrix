@@ -1,7 +1,9 @@
 import http from "http"
 import Jimp from "jimp"
 import { join } from "path"
-import { drawBuffer } from "./matrix"
+import { drawBuffer, playAnimation, Animation } from "./matrix"
+import { parseGIF, decompressFrames } from "gifuct-js"
+import { readFileSync } from "fs"
 
 function removeAlpha(array: Uint8Array) {
   const result = []
@@ -30,7 +32,35 @@ async function loadDefaultImage() {
   currentImage = prepareImageForMatrix(jimp)
   drawBuffer(currentImage)
 }
-loadDefaultImage()
+async function loadDefaultGif() {
+  const buffer = readFileSync(join(__dirname, "../mario_walk.gif"))
+  handleGif(buffer)
+}
+// loadDefaultImage()
+loadDefaultGif()
+
+async function handleGif(buffer: ArrayBuffer) {
+  const frames = decompressFrames(parseGIF(buffer), true)
+
+  const resizedFrames: Animation = []
+  for (const frame of frames) {
+    const image = await Jimp.create(frame.dims.width, frame.dims.height)
+
+    for (let x = 0; x < frame.dims.width; x++) {
+      for (let y = 0; y < frame.dims.height; y++) {
+        const dataIndex = y * frame.dims.height + x
+        const [r, g, b] = frame.colorTable[frame.pixels[dataIndex]]
+        image.setPixelColour(Jimp.rgbaToInt(r, g, b, 255), x, y)
+      }
+    }
+    resizedFrames.push({
+      buffer: prepareImageForMatrix(image),
+      delay: frame.delay,
+    })
+  }
+
+  playAnimation(resizedFrames)
+}
 
 async function drawHandler(
   req: http.IncomingMessage,
