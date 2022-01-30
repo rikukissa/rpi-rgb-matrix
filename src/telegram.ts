@@ -1,6 +1,7 @@
 import TelegramBot from "node-telegram-bot-api"
 import Jimp from "jimp"
 import { handleGif, handleImage } from "."
+import { readFile } from "fs/promises"
 
 const token = process.env.TELEGRAM_BOT_TOKEN!
 
@@ -15,6 +16,8 @@ const ffmpeg = require("fluent-ffmpeg")()
 
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id
+  console.log(msg)
+
   if (msg.sticker && msg.sticker.is_animated) {
     bot.sendMessage(chatId, "Animated stickers are not supported")
     return
@@ -45,10 +48,10 @@ bot.on("message", async (msg) => {
       .noAudio()
       .output(gifPath)
       .on("end", async () => {
-        const jimp = await Jimp.read(gifPath)
-        const buffer = await jimp.getBufferAsync(Jimp.MIME_GIF)
-        console.log("Video converted, sending buffer")
-        handleGif(buffer)
+        console.log("Video converted, reading file")
+        const data = await readFile(gifPath)
+        console.log("Sending buffer")
+        handleGif(data)
       })
       .on("error", () => {
         bot.sendMessage(chatId, "Jotain meni pieleen")
