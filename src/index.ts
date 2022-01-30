@@ -6,6 +6,7 @@ import { drawImage, playAnimation, Animation, queue } from "./matrix"
 import { parseGIF, decompressFrames } from "gifuct-js"
 
 import "./telegram"
+import { writeFile } from "fs/promises"
 
 function removeAlpha(array: Uint8Array) {
   const result = []
@@ -99,8 +100,8 @@ async function drawHandler(
       const data = Buffer.concat(chunks)
       if (req.headers["content-type"] === "image/gif") {
         console.log("Submitting a gif to buffer")
+        await writeFile(join(__dirname, "../current.gif"), data)
         handleGif(data)
-        writeFileSync(join(__dirname, "../current.gif"), data)
       } else {
         handleImage(data)
       }
