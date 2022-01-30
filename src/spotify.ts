@@ -10,9 +10,6 @@ async function getToken() {
   const params = new URLSearchParams()
   params.append("grant_type", "refresh_token")
   params.append("refresh_token", REFRESH_TOKEN)
-  console.log(
-    `Basic ${Buffer.from(CLIENT_ID + ":" + CLIENT_SECRET).toString("base64")}`
-  )
 
   const res = await axios.post(
     "https://accounts.spotify.com/api/token",
@@ -49,7 +46,21 @@ async function main() {
   const smallestImage = images[images.length - 1].url
 
   const jimp = await Jimp.read(smallestImage)
-  const buffer = await jimp.getBufferAsync(Jimp.MIME_PNG)
+
+  const rowHeight = Math.round(jimp.bitmap.height / 32) * 2
+  const progress =
+    currentlyPlaying.progress_ms / currentlyPlaying.item.duration_ms
+
+  const withProgress = jimp.scan(
+    0,
+    jimp.bitmap.height - rowHeight,
+    Math.round(jimp.bitmap.width * progress),
+    rowHeight,
+    function (x, y, offset) {
+      this.bitmap.data.writeUInt32BE(0xff00ff, offset)
+    }
+  )
+  const buffer = await withProgress.getBufferAsync(Jimp.MIME_PNG)
   axios.post(DRAW_ENDPOINT, buffer)
 }
 main()
