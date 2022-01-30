@@ -51,7 +51,7 @@ function queueHandler() {
       setTimeout(() => matrix.sync(), 0)
       return
     }
-    console.log('Queue length': queue.length);
+    console.log("Queue length", queue.length)
 
     let currentQueueItem = queue[0]
 
