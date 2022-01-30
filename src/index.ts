@@ -1,7 +1,7 @@
 import http from "http"
 import Jimp from "jimp"
 import { join } from "path"
-import { writeFileSync, readFileSync, existsSync } from "fs"
+import { writeFileSync, readFileSync, existsSync, createReadStream } from "fs"
 import { drawImage, playAnimation, Animation, queue } from "./matrix"
 import { parseGIF, decompressFrames } from "gifuct-js"
 
@@ -26,7 +26,7 @@ function prepareImageForMatrix(jimp: Jimp) {
   return nonAlphaImage
 }
 
-async function handleGif(buffer: ArrayBuffer) {
+export async function handleGif(buffer: ArrayBuffer) {
   const frames = decompressFrames(parseGIF(buffer), true)
 
   const resizedFrames: Animation["data"] = []
@@ -67,6 +67,16 @@ async function handleGif(buffer: ArrayBuffer) {
   playAnimation(resizedFrames)
 }
 
+export async function handleImage(data: Buffer) {
+  console.log("Reading an image file to Jimp")
+  const jimp = await Jimp.read(data)
+  console.log("Creating a non-transparent bitmap")
+  const nonAlphaImage = prepareImageForMatrix(jimp)
+  console.log("Drawing the new image")
+  writeFileSync(join(__dirname, "../current.png"), data)
+  drawImage(nonAlphaImage)
+}
+
 async function drawHandler(
   req: http.IncomingMessage,
   res: http.ServerResponse
@@ -90,13 +100,7 @@ async function drawHandler(
         handleGif(data)
         writeFileSync(join(__dirname, "../current.gif"), data)
       } else {
-        console.log("Reading an image file to Jimp")
-        const jimp = await Jimp.read(data)
-        console.log("Creating a non-transparent bitmap")
-        const nonAlphaImage = prepareImageForMatrix(jimp)
-        console.log("Drawing the new image")
-        writeFileSync(join(__dirname, "../current.png"), data)
-        drawImage(nonAlphaImage)
+        handleImage(data)
       }
     } catch (error) {
       console.error(error)
@@ -162,12 +166,14 @@ async function currentImageHandler(
 http
   .createServer((req, res) => {
     try {
-      if (req.method === "GET" && req.url === "/image") {
+      if (req.method === "GET" && req.url?.startsWith("/image")) {
         return currentImageHandler(req, res)
       }
       if (req.method === "POST" && req.url === "/queue") {
         return drawHandler(req, res)
       }
+
+      return createReadStream(join(__dirname, "../index.html")).pipe(res)
     } catch (error) {
       console.error(error)
       res.statusCode = 500

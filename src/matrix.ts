@@ -82,7 +82,7 @@ function queueHandler() {
         .clear()
         .brightness(30)
         .drawBuffer(Buffer.of(...currentQueueItem.data), 32, 32)
-      setTimeout(() => matrix.sync(), 0)
+      setTimeout(() => matrix.sync(), 3000)
     }
   })
 
