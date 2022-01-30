@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node-dev --respawn src/index.ts",
+    "start:prod": "forever dist/index.js",
     "build": "tsc"
   },
   "author": "",
@@ -15,6 +16,7 @@
     "@types/node-telegram-bot-api": "^0.53.6",
     "axios": "^0.25.0",
     "fluent-ffmpeg": "^2.1.2",
+    "forever": "^4.0.3",
     "gifuct-js": "^2.1.2",
     "jimp": "^0.16.1",
     "node-telegram-bot-api": "^0.56.0",
