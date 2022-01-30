@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node-dev --respawn src/index.ts",
-    "start:prod": "forever dist/index.js",
+    "start:prod": "forever dist/index.js --minUptime 1000 --spinSleepTime 1000",
     "build": "tsc"
   },
   "author": "",
