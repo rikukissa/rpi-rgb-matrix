@@ -74,7 +74,7 @@
       setInterval(() => {
         document.getElementById(
           "image"
-        ).style.backgroundImage = `url('http://raspberrypi.local:3000/image?${Date.now()}')`
+        ).style.backgroundImage = `url('/image?${Date.now()}')`
       }, 5000)
       const $input = document.querySelector("input")
       $input.addEventListener(
@@ -85,7 +85,7 @@
           reader.onload = function () {
             const arrayBuffer = this.result
             const array = new Uint8Array(arrayBuffer)
-            fetch("http://raspberrypi.local:3000/queue", {
+            fetch("/queue", {
               method: "POST",
               headers: {
                 "Content-Type": $input.files[0].type,
