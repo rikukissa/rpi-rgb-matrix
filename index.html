@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background: #000;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        /* padding: 2rem; */
+      }
+
+      #image {
+        border: 5px solid #fff;
+        align-self: flex-start;
+        width: calc(min(100vh, 100vw) - 10px);
+        aspect-ratio: auto 1 / 1;
+        background: url("/image");
+        background-size: auto 100%;
+        image-rendering: pixelated;
+        animation: background;
+        margin-bottom: 2rem;
+      }
+      button {
+        border: 0;
+        background: #fff;
+        color: #000;
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        text-transform: uppercase;
+        align-self: stretch;
+      }
+      #file {
+        display: none;
+      }
+      label {
+        text-transform: uppercase;
+        color: #fff;
+        border: 5px solid #fff;
+        background: #000;
+        display: block;
+        align-self: stretch;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="image"></div>
+    <input id="file" type="file" />
+    <label for="file">Select a file</label>
+    <button id="submit">Submit</button>
+    <script>
+      let current = 0
+
+      setInterval(() => {
+        document.getElementById("image").style.backgroundPositionX = `-${
+          current * 100
+        }%`
+        current++
+      }, 100)
+
+      setInterval(() => {
+        document.getElementById(
+          "image"
+        ).style.backgroundImage = `url('http://raspberrypi.local:3000/image?${Date.now()}')`
+      }, 5000)
+      const $input = document.querySelector("input")
+      $input.addEventListener(
+        "change",
+        function (event) {
+          var reader = new FileReader()
+
+          reader.onload = function () {
+            const arrayBuffer = this.result
+            const array = new Uint8Array(arrayBuffer)
+            fetch("http://raspberrypi.local:3000/queue", {
+              method: "POST",
+              headers: {
+                "Content-Type": $input.files[0].type,
+              },
+              body: array,
+            })
+          }
+          reader.readAsArrayBuffer(this.files[0])
+        },
+        false
+      )
+    </script>
+  </body>
+</html>
