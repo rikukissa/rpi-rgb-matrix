@@ -48,7 +48,7 @@ function queueHandler() {
 
   matrix.afterSync((mat, dt, t) => {
     if (queue.length === 0) {
-      setTimeout(() => matrix.sync(), 0)
+      setTimeout(() => matrix.sync(), 1000)
       return
     }
     console.log("Queue length", queue.length)
