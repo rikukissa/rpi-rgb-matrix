@@ -5,6 +5,8 @@ import { writeFileSync, readFileSync, existsSync, createReadStream } from "fs"
 import { drawImage, playAnimation, Animation, queue } from "./matrix"
 import { parseGIF, decompressFrames } from "gifuct-js"
 
+import "./telegram"
+
 function removeAlpha(array: Uint8Array) {
   const result = []
 
