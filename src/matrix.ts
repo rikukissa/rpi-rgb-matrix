@@ -120,7 +120,7 @@ function getMatrix() {
     },
     {
       ...LedMatrix.defaultRuntimeOptions(),
-      gpioSlowdown: 0,
+      gpioSlowdown: 2,
     }
   )
   console.log("Matrix created")
