@@ -42,6 +42,11 @@ async function main() {
   const token = await getToken()
 
   const currentlyPlaying = await getCoverImage(token)
+
+  if (!currentlyPlaying.is_playing) {
+    return
+  }
+
   const images = currentlyPlaying.item.album.images
   const smallestImage = images[images.length - 1].url
 
