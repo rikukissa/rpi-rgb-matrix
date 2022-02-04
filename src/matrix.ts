@@ -58,10 +58,6 @@ function queueHandler() {
     console.log("Queue length", queue.length)
 
     let currentQueueItem = queue[0]
-    if (queue.length === 1 && currentQueueItem === currentlyDrawn) {
-      setTimeout(() => sync(), 3000)
-      return
-    }
 
     const timeToChange =
       queue.length > 1 &&
