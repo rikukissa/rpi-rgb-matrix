@@ -16,6 +16,8 @@ let queueLoopRunning = false
 
 export const queue: Array<Animation | Image> = []
 
+const MS_TILL_DIM = 1000 * 60 * 5 // 5 min
+
 function pushToQueue(item: Animation | Image) {
   if (process.env.NODE_ENV !== "production") {
     queue.push(item)
@@ -45,15 +47,21 @@ function queueHandler() {
 
   let animationFrame = 0
   let currentStartedShowing = Date.now()
+  let currentlyDrawn: Animation | Image | null = null
 
-  matrix.afterSync((mat, dt, t) => {
+  function sync() {
     if (queue.length === 0) {
-      setTimeout(() => matrix.sync(), 1000)
+      setTimeout(() => sync(), 3000)
       return
     }
+
     console.log("Queue length", queue.length)
 
     let currentQueueItem = queue[0]
+    if (queue.length === 1 && currentQueueItem === currentlyDrawn) {
+      setTimeout(() => sync(), 3000)
+      return
+    }
 
     const timeToChange =
       queue.length > 1 &&
@@ -67,14 +75,17 @@ function queueHandler() {
       currentQueueItem = queue[0]
       animationFrame = 0
       currentStartedShowing = Date.now()
+      currentlyDrawn = currentQueueItem
     }
+
+    const dimming = ((Date.now() - currentStartedShowing) / MS_TILL_DIM) * 70
 
     if (currentQueueItem.type === "animation") {
       const frameData =
         currentQueueItem.data[animationFrame % currentQueueItem.data.length]
       matrix
         .clear()
-        .brightness(100)
+        .brightness(70 - dimming)
         .drawBuffer(Buffer.of(...frameData.buffer), 32, 32)
       animationFrame++
       setTimeout(() => matrix.sync(), frameData.delay)
@@ -82,11 +93,13 @@ function queueHandler() {
     if (currentQueueItem.type === "image") {
       matrix
         .clear()
-        .brightness(100)
+        .brightness(70 - dimming)
         .drawBuffer(Buffer.of(...currentQueueItem.data), 32, 32)
-      setTimeout(() => matrix.sync(), 3000)
+      setTimeout(() => matrix.sync(), 5000)
     }
-  })
+  }
+
+  matrix.afterSync((mat, dt, t) => sync())
 
   matrix.sync()
 }
@@ -107,7 +120,7 @@ function getMatrix() {
     },
     {
       ...LedMatrix.defaultRuntimeOptions(),
-      gpioSlowdown: 1,
+      gpioSlowdown: 0,
     }
   )
   console.log("Matrix created")
