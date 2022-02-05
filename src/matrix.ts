@@ -81,7 +81,7 @@ function queueHandler() {
         currentQueueItem.data[animationFrame % currentQueueItem.data.length]
       matrix
         .clear()
-        .brightness(70 - dimming)
+        .brightness(Math.max(0, 70 - dimming))
         .drawBuffer(Buffer.of(...frameData.buffer), 32, 32)
       animationFrame++
       setTimeout(() => matrix.sync(), frameData.delay)
@@ -89,7 +89,7 @@ function queueHandler() {
     if (currentQueueItem.type === "image") {
       matrix
         .clear()
-        .brightness(70 - dimming)
+        .brightness(Math.max(0, 70 - dimming))
         .drawBuffer(Buffer.of(...currentQueueItem.data), 32, 32)
       setTimeout(() => matrix.sync(), 5000)
     }
