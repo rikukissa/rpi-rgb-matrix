@@ -2,7 +2,13 @@ import http from "http"
 import Jimp from "jimp"
 import { join } from "path"
 import { writeFileSync, readFileSync, existsSync, createReadStream } from "fs"
-import { drawImage, playAnimation, Animation, queue } from "./matrix"
+import {
+  drawImage,
+  playAnimation,
+  Animation,
+  queue,
+  pushToQueue,
+} from "./matrix"
 import { parseGIF, decompressFrames } from "gifuct-js"
 
 import "./telegram"
@@ -102,6 +108,8 @@ async function drawHandler(
         console.log("Submitting a gif to buffer")
         await writeFile(join(__dirname, "../current.gif"), data)
         handleGif(data)
+      } else if (req.headers["content-type"] === "application/json") {
+        pushToQueue(JSON.parse(Buffer.concat(chunks).toString()))
       } else {
         handleImage(data)
       }

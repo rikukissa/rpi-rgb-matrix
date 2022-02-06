@@ -18,7 +18,7 @@ export const queue: Array<Animation | Image> = []
 
 const MS_TILL_DIM = 1000 * 60 * 5 // 5 min
 
-function pushToQueue(item: Animation | Image) {
+export function pushToQueue(item: Animation | Image) {
   if (process.env.NODE_ENV !== "production") {
     queue.push(item)
     return
