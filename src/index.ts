@@ -94,7 +94,10 @@ async function drawHandler(
   const chunks: Buffer[] = []
 
   req.on("data", (chunk) => {
-    if (Buffer.concat(chunks).length > 1000000) {
+    if (
+      Buffer.concat(chunks).length > 1000000 &&
+      req.headers["content-type"] !== "application/json"
+    ) {
       res.statusCode = 413
       res.end()
       req.destroy()
