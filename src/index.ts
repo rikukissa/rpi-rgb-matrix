@@ -8,6 +8,7 @@ import {
   Animation,
   queue,
   pushToQueue,
+  Image,
 } from "./matrix"
 import { parseGIF, decompressFrames } from "gifuct-js"
 
@@ -109,7 +110,19 @@ async function drawHandler(
         await writeFile(join(__dirname, "../current.gif"), data)
         handleGif(data)
       } else if (req.headers["content-type"] === "application/json") {
-        pushToQueue(JSON.parse(Buffer.concat(chunks).toString()))
+        const data: Animation | Image = JSON.parse(
+          Buffer.concat(chunks).toString()
+        )
+
+        if (data.type === "image") {
+          data.data = Buffer.from(data.data)
+        }
+        if (data.type === "animation") {
+          data.data.forEach((frame) => {
+            frame.buffer = Buffer.from(frame.buffer)
+          })
+        }
+        pushToQueue(data)
       } else {
         handleImage(data)
       }

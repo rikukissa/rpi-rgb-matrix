@@ -2,7 +2,7 @@ import { LedMatrix, GpioMapping, LedMatrixInstance } from "rpi-led-matrix"
 
 let cachedMatrix: LedMatrixInstance
 
-type Image = { type: "image"; data: Uint8Array }
+export type Image = { type: "image"; data: Uint8Array }
 
 export type Animation = {
   type: "animation"
