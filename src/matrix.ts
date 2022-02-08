@@ -36,11 +36,11 @@ export function pushToQueue(item: Animation | Image) {
     return
   }
 
+  queue.push(item)
   if (!queueLoopRunning) {
     queueHandler()
     queueLoopRunning = true
   }
-  queue.push(item)
 }
 
 let retryTimeout: NodeJS.Timeout
