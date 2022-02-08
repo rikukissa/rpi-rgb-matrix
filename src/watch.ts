@@ -2,7 +2,7 @@ require("dotenv").config()
 import axios from "axios"
 import { createCanvas, registerFont } from "canvas"
 import { join } from "path"
-import { format } from "date-fns"
+import { format, endOfMinute } from "date-fns"
 import { removeAlpha } from "./util"
 
 const DRAW_ENDPOINT = process.env.DRAW_ENDPOINT!
@@ -20,15 +20,17 @@ async function main() {
   ctx.textAlign = "center"
   ctx.textBaseline = "middle"
 
-  const date = format(new Date(), "h:mm")
+  const date = new Date()
+  const dateString = format(date, "h:mm")
 
   ctx.fillStyle = "#fff"
   ctx.translate(16, 16)
-  ctx.fillText(date, 0, 0)
+  ctx.fillText(dateString, 0, 0)
 
   axios.post(DRAW_ENDPOINT, {
     type: "image",
     data: removeAlpha(ctx.getImageData(0, 0, 32, 32).data),
+    validUntil: endOfMinute(date),
   })
 }
 main()

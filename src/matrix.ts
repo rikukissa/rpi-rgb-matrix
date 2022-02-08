@@ -2,9 +2,11 @@ import { LedMatrix, GpioMapping, LedMatrixInstance } from "rpi-led-matrix"
 
 let cachedMatrix: LedMatrixInstance
 
-export type Image = { type: "image"; data: Uint8Array }
+type QueueItem = { immediate?: boolean; validUntil?: Date; priority?: number }
 
-export type Animation = {
+export type Image = QueueItem & { type: "image"; data: Uint8Array }
+
+export type Animation = QueueItem & {
   type: "animation"
   data: Array<{
     buffer: Uint8Array
@@ -14,9 +16,19 @@ export type Animation = {
 
 let queueLoopRunning = false
 
-export const queue: Array<Animation | Image> = []
+export let queue: Array<Animation | Image> = []
 
 const MS_TILL_DIM = 1000 * 60 * 5 // 5 min
+
+function printQueue(q: typeof queue) {
+  console.log(
+    JSON.stringify(
+      queue.map((item) => ({ ...item, data: "" })),
+      null,
+      2
+    )
+  )
+}
 
 export function pushToQueue(item: Animation | Image) {
   if (process.env.NODE_ENV !== "production") {
@@ -32,30 +44,32 @@ export function pushToQueue(item: Animation | Image) {
 }
 
 let retryTimeout: NodeJS.Timeout
+let matrix: LedMatrixInstance
+
 function queueHandler() {
-  let matrix: LedMatrixInstance
   clearTimeout(retryTimeout)
 
-  try {
-    matrix = getMatrix()
-  } catch (error) {
-    console.error(error)
-    console.log("Matrix creating failed. Trying again in 10 seconds")
-    retryTimeout = setTimeout(() => queueHandler(), 3000)
-    return
+  if (!matrix) {
+    try {
+      matrix = getMatrix()
+    } catch (error) {
+      console.error(error)
+      console.log("Matrix creating failed. Trying again in 10 seconds")
+      retryTimeout = setTimeout(() => queueHandler(), 3000)
+      return
+    }
   }
 
   let animationFrame = 0
   let currentStartedShowing = Date.now()
-  let currentlyDrawn: Animation | Image | null = null
 
   function sync() {
     if (queue.length === 0) {
-      setTimeout(() => sync(), 3000)
+      queueLoopRunning = false
       return
     }
 
-    console.log("Queue length", queue.length)
+    printQueue(queue)
 
     let currentQueueItem = queue[0]
 
@@ -67,14 +81,23 @@ function queueHandler() {
           Date.now() - currentStartedShowing > 3000))
 
     if (timeToChange) {
-      queue.shift()
+      queue = queue
+        .slice(1)
+        .filter(
+          (item) => !item.validUntil || new Date(item.validUntil) > new Date()
+        )
+        .sort((a, b) => (b.priority || 0) - (a.priority || 0))
       currentQueueItem = queue[0]
       animationFrame = 0
       currentStartedShowing = Date.now()
-      currentlyDrawn = currentQueueItem
     }
 
     const dimming = ((Date.now() - currentStartedShowing) / MS_TILL_DIM) * 70
+
+    if (dimming === 70) {
+      queueLoopRunning = false
+      return
+    }
 
     if (currentQueueItem.type === "animation") {
       const frameData =
