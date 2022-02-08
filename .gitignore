@@ -2,3 +2,5 @@ node_modules
 dist
 current.png
 current.gif
+.env
+.DS_Store

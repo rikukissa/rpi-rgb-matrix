@@ -1,3 +1,5 @@
+require("dotenv").config()
+
 import http from "http"
 import Jimp from "jimp"
 import { join } from "path"

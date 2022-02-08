@@ -1,5 +1,7 @@
 [Unit]
 Description=RPI RGB Grid
+After=systemd-networkd-wait-online.service
+Requires=systemd-networkd-wait-online.service
 
 [Service]
 Environment=NODE_PORT=3000
