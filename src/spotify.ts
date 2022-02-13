@@ -59,15 +59,17 @@ async function main() {
   const progress =
     currentlyPlaying.progress_ms / currentlyPlaying.item.duration_ms
 
-  const withProgress = jimp.scan(
-    0,
-    jimp.bitmap.height - rowHeight,
-    Math.round(jimp.bitmap.width * progress),
-    rowHeight,
-    function (x, y, offset) {
-      this.bitmap.data.writeUInt32BE(0xff00ff, offset)
-    }
-  )
+  const withProgress = jimp
+    .scan(
+      0,
+      jimp.bitmap.height - rowHeight,
+      Math.round(jimp.bitmap.width * progress),
+      rowHeight,
+      function (x, y, offset) {
+        this.bitmap.data.writeUInt32BE(0xff00ff, offset)
+      }
+    )
+    .resize(32, 32)
 
   const data = removeAlpha(Uint8ClampedArray.from(withProgress.bitmap.data))
 

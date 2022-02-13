@@ -30,7 +30,20 @@ function printQueue(q: typeof queue) {
   )
 }
 
+const ALLOWED_BYTE_SIZE = 32 * 32 * 3
 export function pushToQueue(item: Animation | Image) {
+  if (item.type === "animation") {
+    for (const frame of item.data) {
+      if (frame.buffer.length !== ALLOWED_BYTE_SIZE) {
+        throw new Error("Animation frames have invalid size")
+      }
+    }
+  }
+  if (item.type === "image") {
+    if (item.data.length !== ALLOWED_BYTE_SIZE) {
+      throw new Error("Animation frames have invalid size")
+    }
+  }
   if (process.env.NODE_ENV !== "production") {
     queue.push(item)
     return
@@ -69,8 +82,6 @@ function queueHandler() {
       return
     }
 
-    printQueue(queue)
-
     let currentQueueItem = queue[0]
 
     const timeToChange =
@@ -81,6 +92,7 @@ function queueHandler() {
           Date.now() - currentStartedShowing > 3000))
 
     if (timeToChange) {
+      printQueue(queue)
       queue = queue
         .slice(1)
         .filter(
