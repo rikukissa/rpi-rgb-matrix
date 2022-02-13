@@ -92,13 +92,13 @@ function queueHandler() {
           Date.now() - currentStartedShowing > 3000))
 
     if (timeToChange) {
-      printQueue(queue)
       queue = queue
         .slice(1)
         .filter(
           (item) => !item.validUntil || new Date(item.validUntil) > new Date()
         )
         .sort((a, b) => (b.priority || 0) - (a.priority || 0))
+      printQueue(queue)
       currentQueueItem = queue[0]
       animationFrame = 0
       currentStartedShowing = Date.now()
