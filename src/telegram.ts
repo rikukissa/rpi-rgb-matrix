@@ -1,6 +1,6 @@
 import TelegramBot from "node-telegram-bot-api"
 import Jimp from "jimp"
-import { handleGif, handleImage } from "."
+import { resizeGif } from "."
 import { readFile, writeFile } from "fs/promises"
 
 const token = process.env.TELEGRAM_BOT_TOKEN!
@@ -11,10 +11,21 @@ const ffmpegInstaller = require("@ffmpeg-installer/ffmpeg")
 const ffprobe = require("@ffprobe-installer/ffprobe")
 import ffmpeg from "fluent-ffmpeg"
 import { join } from "path"
+import { pushToQueue } from "./matrix"
+import { prepareImageForMatrix } from "./util"
+
+async function resizeImage(data: Buffer) {
+  console.log("Reading an image file to Jimp")
+  const jimp = await Jimp.read(data)
+  console.log("Creating a non-transparent bitmap")
+  const nonAlphaImage = prepareImageForMatrix(jimp)
+  console.log("Drawing the new image")
+
+  return nonAlphaImage
+}
 
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id
-  console.log(msg)
 
   if (msg.sticker && msg.sticker.is_animated) {
     bot.sendMessage(chatId, "Animated stickers are not supported")
@@ -27,7 +38,8 @@ bot.on("message", async (msg) => {
     const buffer = await jimp.getBufferAsync(Jimp.MIME_PNG)
     console.log("Storing file as current")
     await writeFile(join(__dirname, "../current.png"), buffer)
-    handleImage(buffer)
+    const data = await resizeImage(buffer)
+    pushToQueue({ type: "image", data, priority: 2 })
     return
   }
   if (msg.photo) {
@@ -36,7 +48,8 @@ bot.on("message", async (msg) => {
     const buffer = await jimp.getBufferAsync(Jimp.MIME_PNG)
     console.log("Storing file as current")
     await writeFile(join(__dirname, "../current.png"), buffer)
-    handleImage(buffer)
+    const data = await resizeImage(buffer)
+    pushToQueue({ type: "image", data, priority: 2 })
     return
   }
 
@@ -61,7 +74,8 @@ bot.on("message", async (msg) => {
         console.log("Storing file as current")
         await writeFile(join(__dirname, "../current.gif"), data)
         console.log("Sending buffer")
-        handleGif(data)
+        const frames = await resizeGif(data)
+        pushToQueue({ type: "animation", data: frames, priority: 2 })
       })
       .on("error", () => {
         bot.sendMessage(chatId, "Jotain meni pieleen")

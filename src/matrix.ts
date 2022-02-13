@@ -157,11 +157,3 @@ function getMatrix() {
   console.log("Matrix created")
   return cachedMatrix
 }
-
-export function playAnimation(animation: Animation["data"]) {
-  pushToQueue({ type: "animation", data: animation })
-}
-
-export function drawImage(array: Uint8Array) {
-  pushToQueue({ type: "image", data: array })
-}

@@ -3,42 +3,15 @@ require("dotenv").config()
 import http from "http"
 import Jimp from "jimp"
 import { join } from "path"
-import { writeFileSync, readFileSync, existsSync, createReadStream } from "fs"
-import {
-  drawImage,
-  playAnimation,
-  Animation,
-  queue,
-  pushToQueue,
-  Image,
-} from "./matrix"
+import { readFileSync, existsSync, createReadStream } from "fs"
+import { Animation, queue, pushToQueue, Image } from "./matrix"
 import { parseGIF, decompressFrames } from "gifuct-js"
 
 import "./telegram"
 import { writeFile } from "fs/promises"
+import { prepareImageForMatrix } from "./util"
 
-function removeAlpha(array: Uint8Array) {
-  const result = []
-
-  for (let i = 0; i < array.length; i++) {
-    if ((i + 1) % 4 === 0) {
-      continue
-    }
-    result.push(array[i])
-  }
-
-  return new Uint8Array(result)
-}
-
-function prepareImageForMatrix(jimp: Jimp) {
-  const resized = jimp.resize(32, 32)
-  const colorArray = new Uint8Array(resized.colorType(0).bitmap.data.buffer)
-
-  const nonAlphaImage = removeAlpha(colorArray)
-  return nonAlphaImage
-}
-
-export async function handleGif(buffer: ArrayBuffer) {
+export async function resizeGif(buffer: ArrayBuffer) {
   const frames = decompressFrames(parseGIF(buffer), true)
 
   const resizedFrames: Animation["data"] = []
@@ -75,18 +48,7 @@ export async function handleGif(buffer: ArrayBuffer) {
       delay: frame.delay,
     })
   }
-
-  playAnimation(resizedFrames)
-}
-
-export async function handleImage(data: Buffer) {
-  console.log("Reading an image file to Jimp")
-  const jimp = await Jimp.read(data)
-  console.log("Creating a non-transparent bitmap")
-  const nonAlphaImage = prepareImageForMatrix(jimp)
-  console.log("Drawing the new image")
-  writeFileSync(join(__dirname, "../current.png"), data)
-  drawImage(nonAlphaImage)
+  return resizedFrames
 }
 
 async function drawHandler(
@@ -113,7 +75,8 @@ async function drawHandler(
       if (req.headers["content-type"] === "image/gif") {
         console.log("Submitting a gif to buffer")
         await writeFile(join(__dirname, "../current.gif"), data)
-        handleGif(data)
+        const frames = await resizeGif(data)
+        pushToQueue({ type: "animation", data: frames })
       } else if (req.headers["content-type"] === "application/json") {
         const data: Animation | Image = JSON.parse(
           Buffer.concat(chunks).toString()
@@ -129,7 +92,7 @@ async function drawHandler(
         }
         pushToQueue(data)
       } else {
-        handleImage(data)
+        pushToQueue({ type: "image", data: data })
       }
     } catch (error) {
       console.error(error)
@@ -211,22 +174,13 @@ http
   })
   .listen(process.env.NODE_PORT || 3000)
 
-let currentImage: Uint8Array | null = null
-async function loadDefaultImage() {
-  if (!existsSync(join(__dirname, "../current.png"))) {
-    return
-  }
-  const jimp = await Jimp.read(join(__dirname, "../current.png"))
-  currentImage = prepareImageForMatrix(jimp)
-  drawImage(currentImage)
-}
 async function loadDefaultGif() {
   if (!existsSync(join(__dirname, "../current.gif"))) {
     return
   }
-  const buffer = readFileSync(join(__dirname, "../current.gif"))
-  handleGif(buffer)
+  const data = readFileSync(join(__dirname, "../current.gif"))
+  const frames = await resizeGif(data)
+  pushToQueue({ type: "animation", data: frames })
 }
 
 loadDefaultGif()
-// loadDefaultImage()
