@@ -19,7 +19,8 @@ function endOfMinute(date: Date) {
 }
 
 function format(date: Date) {
-  return `${date.getHours() % 12}:${date.getMinutes()}`
+  const minutes = date.getMinutes()
+  return `${date.getHours() % 12}:${minutes < 10 ? "0" : ""}${minutes}`
 }
 
 async function main() {
