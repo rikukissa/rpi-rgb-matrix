@@ -42,6 +42,7 @@ async function main() {
     type: "image",
     data: removeAlpha(ctx.getImageData(0, 0, 32, 32).data),
     validUntil: endOfMinute(date),
+    priority: 0,
   })
 }
 main()

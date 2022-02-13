@@ -2,6 +2,7 @@ require("dotenv").config()
 
 import axios from "axios"
 import Jimp from "jimp"
+import { removeAlpha } from "./util"
 
 const CLIENT_ID = process.env.CLIENT_ID!
 const CLIENT_SECRET = process.env.CLIENT_SECRET!
@@ -68,6 +69,11 @@ async function main() {
     }
   )
   const buffer = await withProgress.getBufferAsync(Jimp.MIME_PNG)
-  axios.post(DRAW_ENDPOINT, buffer)
+
+  axios.post(DRAW_ENDPOINT, {
+    type: "image",
+    data: removeAlpha(Uint8ClampedArray.from(buffer)),
+    priority: 1,
+  })
 }
 main()
