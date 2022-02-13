@@ -68,11 +68,12 @@ async function main() {
       this.bitmap.data.writeUInt32BE(0xff00ff, offset)
     }
   )
-  const buffer = await withProgress.getBufferAsync(Jimp.MIME_PNG)
+
+  const data = removeAlpha(Uint8ClampedArray.from(withProgress.bitmap.data))
 
   axios.post(DRAW_ENDPOINT, {
     type: "image",
-    data: removeAlpha(Uint8ClampedArray.from(buffer)),
+    data: data,
     priority: 1,
   })
 }
