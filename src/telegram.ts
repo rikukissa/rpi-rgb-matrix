@@ -2,6 +2,7 @@ import TelegramBot from "node-telegram-bot-api"
 import Jimp from "jimp"
 import { resizeGif } from "."
 import { readFile, writeFile } from "fs/promises"
+import QRCode from "qrcode"
 
 const token = process.env.TELEGRAM_BOT_TOKEN!
 
@@ -58,6 +59,7 @@ bot.on("message", async (msg) => {
   if (animation?.file_size && animation?.file_size > 400000) {
     return bot.sendMessage(chatId, "That GIF is too large for me to handle")
   }
+
   if (animation && animation.mime_type === "video/mp4") {
     const filePath = await bot.downloadFile(animation.file_id, "/tmp")
     const gifPath = `/tmp/${Date.now()}.gif`
@@ -81,6 +83,19 @@ bot.on("message", async (msg) => {
         bot.sendMessage(chatId, "Jotain meni pieleen")
       })
       .run()
+  }
+
+  if (msg.text) {
+    const url =
+      /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/
+    if (msg.text.match(url)) {
+      const buffer = await QRCode.toBuffer(msg.text, { width: 32 })
+
+      console.log("Storing file as current")
+      await writeFile(join(__dirname, "../current.png"), buffer)
+      const data = await resizeImage(buffer)
+      pushToQueue({ type: "image", data, priority: 2 })
+    }
   }
 
   bot.sendMessage(chatId, "Received your message")

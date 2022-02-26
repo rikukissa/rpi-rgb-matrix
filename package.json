@@ -23,6 +23,7 @@
     "gifuct-js": "^2.1.2",
     "jimp": "^0.16.1",
     "node-telegram-bot-api": "^0.56.0",
+    "qrcode": "^1.5.0",
     "rpi-led-matrix": "^1.11.1",
     "ts-node": "^10.4.0",
     "ts-node-dev": "^1.1.8",
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "@types/node": "^17.0.13",
+    "@types/qrcode": "^1.4.2",
     "prettier": "^2.5.1",
     "ts-node-dev": "^1.1.8"
   }
