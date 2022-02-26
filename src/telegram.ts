@@ -89,9 +89,7 @@ bot.on("message", async (msg) => {
     const url =
       /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/
     if (msg.text.match(url)) {
-      const buffer = await QRCode.toBuffer(msg.text, { width: 32 })
-
-      console.log("Storing file as current")
+      const buffer = await QRCode.toBuffer(msg.text, { width: 32, margin: 0 })
       await writeFile(join(__dirname, "../current.png"), buffer)
       const data = await resizeImage(buffer)
       pushToQueue({ type: "image", data, priority: 2 })
