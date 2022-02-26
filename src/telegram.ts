@@ -3,6 +3,8 @@ import Jimp from "jimp"
 import { resizeGif } from "."
 import { readFile, writeFile } from "fs/promises"
 import QRCode from "qrcode"
+const BitlyClient = require("bitly").BitlyClient
+const bitly = new BitlyClient(process.env.BITLY_TOKEN)
 
 const token = process.env.TELEGRAM_BOT_TOKEN!
 
@@ -89,8 +91,15 @@ bot.on("message", async (msg) => {
     const url =
       /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/
     if (msg.text.match(url)) {
-      const buffer = await QRCode.toBuffer(msg.text, { width: 32, margin: 0 })
-      await writeFile(join(__dirname, "../current.png"), buffer)
+      const shortened = await bitly.shorten(msg.text)
+
+      const buffer = await QRCode.toBuffer(shortened.link, {
+        version: 3,
+        width: 32,
+        margin: 0,
+        errorCorrectionLevel: "H",
+      })
+      await writeFile(join(__dirname, "../current2.png"), buffer)
       const data = await resizeImage(buffer)
       pushToQueue({ type: "image", data, priority: 2 })
     }
