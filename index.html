@@ -14,23 +14,27 @@
         padding: 0;
         background: #000;
       }
+      * {
+        box-sizing: border-box;
+      }
       body {
+        padding: 2rem;
         display: flex;
         flex-direction: column;
         align-items: center;
-        /* padding: 2rem; */
       }
 
       #image {
         border: 5px solid #fff;
-        align-self: flex-start;
+        align-self: center;
         width: calc(min(100vh, 100vw) - 10px);
         aspect-ratio: auto 1 / 1;
-        background: url("/image");
+        background: url("http://raspberrypi.local:3000/image");
         background-size: auto 100%;
         image-rendering: pixelated;
         animation: background;
         margin-bottom: 2rem;
+        max-width: 100%;
       }
       button {
         border: 0;
@@ -54,27 +58,37 @@
         padding: 0.5rem;
         margin-bottom: 1rem;
       }
+      section {
+        align-self: normal;
+        max-width: 600px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
     </style>
   </head>
   <body>
-    <div id="image"></div>
-    <input id="file" type="file" />
-    <label for="file">Select a file</label>
-    <button id="submit">Submit</button>
+    <section>
+      <div id="image"></div>
+      <input id="file" type="file" />
+      <label for="file">Select a file</label>
+      <button id="submit">Submit</button>
+    </section>
     <script>
+      const HOST = "http://raspberrypi.local:3000"
       let current = 0
 
-      setInterval(() => {
-        document.getElementById("image").style.backgroundPositionX = `-${
-          current * 100
-        }%`
-        current++
-      }, 100)
+      // setInterval(() => {
+      //   document.getElementById("image").style.backgroundPositionX = `-${
+      //     current * 100
+      //   }%`
+      //   current++
+      // }, 100)
 
       setInterval(() => {
         document.getElementById(
           "image"
-        ).style.backgroundImage = `url('/image?${Date.now()}')`
+        ).style.backgroundImage = `url('${HOST}/image?${Date.now()}')`
       }, 5000)
       const $input = document.querySelector("input")
       $input.addEventListener(
