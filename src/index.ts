@@ -157,6 +157,19 @@ async function currentImageHandler(
 
 http
   .createServer((req, res) => {
+    res.setHeader("Access-Control-Allow-Origin", "*")
+
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept"
+    )
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+
+    if (req.method === "OPTIONS") {
+      res.writeHead(204).end()
+      return
+    }
+
     try {
       if (req.method === "GET" && req.url?.startsWith("/image")) {
         return currentImageHandler(req, res)
