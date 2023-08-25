@@ -49,6 +49,10 @@ export function pushToQueue(item: Animation | Image) {
     return
   }
 
+  if (item.immediate) {
+    queue = [item]
+  }
+
   queue.push(item)
   if (!queueLoopRunning) {
     queueHandler()
