@@ -4,7 +4,7 @@ import http from "http"
 import Jimp from "jimp"
 import { join } from "path"
 import { readFileSync, existsSync, createReadStream } from "fs"
-import { Animation, queue, pushToQueue, Image } from "./matrix"
+import { Animation, pushToQueue, Image, getQueue } from "./matrix"
 import { parseGIF, decompressFrames } from "gifuct-js"
 
 import "./telegram"
@@ -111,11 +111,26 @@ async function drawHandler(
   })
 }
 
+async function currentQueueHandler(
+  _req: http.IncomingMessage,
+  res: http.ServerResponse
+) {
+  res.setHeader("Content-Type", "application/json")
+  res.write(
+    JSON.stringify(
+      getQueue().map((item) => ({ ...item, data: "" })),
+      null,
+      2
+    )
+  )
+  res.end()
+  return
+}
 async function currentImageHandler(
   _req: http.IncomingMessage,
   res: http.ServerResponse
 ) {
-  const currentBufferItem = queue[0]
+  const currentBufferItem = getQueue()[0]
   if (!currentBufferItem) {
     res.statusCode = 404
     res.end()
@@ -173,6 +188,9 @@ http
     try {
       if (req.method === "GET" && req.url?.startsWith("/image")) {
         return currentImageHandler(req, res)
+      }
+      if (req.method === "GET" && req.url?.startsWith("/queue")) {
+        return currentQueueHandler(req, res)
       }
       if (req.method === "POST" && req.url === "/queue") {
         return drawHandler(req, res)

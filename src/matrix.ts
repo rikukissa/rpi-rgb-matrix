@@ -20,6 +20,10 @@ export let queue: Array<Animation | Image> = []
 
 const MS_TILL_DIM = 1000 * 60 * 5 // 5 min
 
+export function getQueue() {
+  return queue
+}
+
 function printQueue(q: typeof queue) {
   console.log(
     JSON.stringify(
