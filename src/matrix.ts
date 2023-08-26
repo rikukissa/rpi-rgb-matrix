@@ -93,12 +93,13 @@ function queueHandler() {
     let currentQueueItem = queue[0]
 
     const timeToChange =
-      queue.length > 1 ||
-      (currentQueueItem.type === "animation" &&
+      (queue.length > 1 &&
+        currentQueueItem.type === "animation" &&
         animationFrame >= currentQueueItem.data.length) ||
-      (currentQueueItem.type === "image" &&
+      (queue.length > 1 &&
+        currentQueueItem.type === "image" &&
         Date.now() - currentStartedShowing > 3000) ||
-      queue[0].immediate
+      (queue.length > 1 && queue[0].immediate)
 
     if (timeToChange) {
       queue = queue
