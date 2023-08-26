@@ -125,7 +125,10 @@ function queueHandler() {
 
     const dimming = ((Date.now() - currentStartedShowing) / MS_TILL_DIM) * 70
 
-    if (dimming === 70) {
+    if (
+      dimming === 70 ||
+      (queue.length === 1 && currentQueueItem.type === "image" && !timeToChange)
+    ) {
       queueLoopRunning = false
       return
     }
