@@ -18,7 +18,7 @@ let queueLoopRunning = false
 
 export let queue: Array<Animation | Image> = []
 
-const MS_TILL_DIM = 1000 * 60 * 5 // 5 min
+const MS_TILL_DIM = 1000 * 60 * 15 // 5 min
 
 export function getQueue() {
   return queue

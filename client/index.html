@@ -5,6 +5,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+    />
     <style>
       html,
       body {
@@ -18,7 +22,7 @@
         box-sizing: border-box;
       }
       body {
-        padding: 2rem;
+        padding: 1rem;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -30,7 +34,7 @@
         align-self: center;
         width: calc(min(100vh, 100vw) - 10px);
         aspect-ratio: auto 1 / 1;
-        background: url("http://raspberrypi.local:3000/image");
+        background: url("https://a570-87-92-177-140.ngrok-free.app/image");
         background-size: auto 100%;
         image-rendering: pixelated;
         animation: background;
@@ -61,22 +65,18 @@
         align-self: stretch;
         padding: 0.5rem;
         margin-bottom: 1rem;
-        display: none;
+        /* display: none; */
       }
       section {
-        align-self: normal;
-        max-width: 1000px;
-        display: flex;
-        flex-direction: row;
-        margin: auto;
       }
       form {
-        margin-left: 1rem;
         flex-shrink: 0;
+        width: calc(min(100vh, 100vw) - 2rem);
+        height: calc(min(100vh, 100vw) - 2rem);
+        display: flex;
+        flex-direction: column;
       }
       canvas {
-        width: 90vw;
-        height: 90vh;
         image-rendering: pixelated;
       }
       #tools {
@@ -98,7 +98,7 @@
       </form>
     </section>
     <script>
-      const HOST = "http://raspberrypi.local:3000"
+      const HOST = "https://a570-87-92-177-140.ngrok-free.app"
       let current = 0
 
       setInterval(() => {
@@ -110,13 +110,13 @@
       const $color = document.querySelector("#color")
       const $canvas = document.querySelector("canvas")
       const ctx = $canvas.getContext("2d")
-
+      ctx.imageSmoothingEnabled = false
       canvas.width = 32
       canvas.height = 32
 
-      // load image from http://raspberrypi.local:3000/image to canvas
+      // load image from https://a570-87-92-177-140.ngrok-free.app/image to canvas
       const img = new Image()
-      img.src = "http://raspberrypi.local:3000/image"
+      img.src = "https://a570-87-92-177-140.ngrok-free.app/image"
       img.crossOrigin = "Anonymous"
       img.onload = function () {
         ctx.drawImage(img, 0, 0, 32, 32)
@@ -148,6 +148,10 @@
 
               canvas.width = width
               canvas.height = height
+              ctx.imageSmoothingEnable = false
+              console.log(canvas.width, canvas.height)
+              console.log(ctx.imageSmoothingEnable)
+
               ctx.drawImage(img, 0, 0, width, height)
               submit()
             }
@@ -177,12 +181,16 @@
       })
 
       function draw(e) {
+        let pos = { x: event.clientX, y: event.clientY }
+        if (event.touches) {
+          pos = { x: event.touches[0].clientX, y: event.touches[0].clientY }
+        }
         const rect = $canvas.getBoundingClientRect()
         const x = Math.floor(
-          ((e.clientX - rect.left) / (rect.right - rect.left)) * $canvas.width
+          ((pos.x - rect.left) / (rect.right - rect.left)) * $canvas.width
         )
         const y = Math.floor(
-          ((e.clientY - rect.top) / (rect.bottom - rect.top)) * $canvas.height
+          ((pos.y - rect.top) / (rect.bottom - rect.top)) * $canvas.height
         )
         ctx.save()
         ctx.fillStyle = color
@@ -193,20 +201,27 @@
       // paint on canvas which mouse
       let isDrawing = false
 
-      $canvas.addEventListener("mousedown", (e) => {
+      const start = (e) => {
         isDrawing = true
         draw(e)
         submit()
-      })
-      $canvas.addEventListener("mousemove", (e) => {
+      }
+      const move = (e) => {
         if (isDrawing) {
           draw(e)
           submit()
         }
-      })
-      $canvas.addEventListener("mouseup", (e) => {
+      }
+      const end = (e) => {
         isDrawing = false
-      })
+      }
+
+      $canvas.addEventListener("touchstart", start)
+      $canvas.addEventListener("touchmove", move)
+      $canvas.addEventListener("touchend", end)
+      $canvas.addEventListener("mousedown", start)
+      $canvas.addEventListener("mousemove", move)
+      $canvas.addEventListener("mouseup", end)
 
       function debounce(fn, delay) {
         let timeoutId

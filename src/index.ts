@@ -111,6 +111,16 @@ async function drawHandler(
   })
 }
 
+async function clientHandler(
+  _req: http.IncomingMessage,
+  res: http.ServerResponse
+) {
+  res.setHeader("Content-Type", "text/html");
+  res.write(readFileSync(join(__dirname, "../index.html"));
+  res.end()
+  return
+}
+
 async function currentQueueHandler(
   _req: http.IncomingMessage,
   res: http.ServerResponse
@@ -191,6 +201,9 @@ http
       }
       if (req.method === "GET" && req.url?.startsWith("/queue")) {
         return currentQueueHandler(req, res)
+      }
+      if (req.method === "GET") {
+        return clientHandler(req, res)
       }
       if (req.method === "POST" && req.url === "/queue") {
         return drawHandler(req, res)
