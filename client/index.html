@@ -148,13 +148,23 @@
                 }
               }
 
-              canvas.width = width
-              canvas.height = height
               ctx.imageSmoothingEnable = false
-              console.log(canvas.width, canvas.height)
-              console.log(ctx.imageSmoothingEnable)
-
-              ctx.drawImage(img, 0, 0, width, height)
+              // draw image to the center of canvas
+              ctx.save()
+              ctx.fillStyle = "#000"
+              ctx.fillRect(0, 0, 32, 32)
+              ctx.restore()
+              ctx.drawImage(
+                img,
+                0,
+                0,
+                img.width,
+                img.height,
+                (32 - width) / 2,
+                (32 - height) / 2,
+                width,
+                height
+              )
               submit()
             }
           }
