@@ -26,6 +26,8 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        overflow: hidden;
+        position: fixed;
       }
 
       #image {
@@ -34,7 +36,7 @@
         align-self: center;
         width: calc(min(100vh, 100vw) - 10px);
         aspect-ratio: auto 1 / 1;
-        background: url("https://a570-87-92-177-140.ngrok-free.app/image");
+        background: url("https://real-notably-wildcat.ngrok-free.app/image");
         background-size: auto 100%;
         image-rendering: pixelated;
         animation: background;
@@ -98,7 +100,7 @@
       </form>
     </section>
     <script>
-      const HOST = "https://a570-87-92-177-140.ngrok-free.app"
+      const HOST = "https://real-notably-wildcat.ngrok-free.app"
       let current = 0
 
       setInterval(() => {
@@ -114,9 +116,9 @@
       canvas.width = 32
       canvas.height = 32
 
-      // load image from https://a570-87-92-177-140.ngrok-free.app/image to canvas
+      // load image from https://real-notably-wildcat.ngrok-free.app/image to canvas
       const img = new Image()
-      img.src = "https://a570-87-92-177-140.ngrok-free.app/image"
+      img.src = "https://real-notably-wildcat.ngrok-free.app/image"
       img.crossOrigin = "Anonymous"
       img.onload = function () {
         ctx.drawImage(img, 0, 0, 32, 32)

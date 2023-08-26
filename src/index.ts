@@ -115,8 +115,8 @@ async function clientHandler(
   _req: http.IncomingMessage,
   res: http.ServerResponse
 ) {
-  res.setHeader("Content-Type", "text/html");
-  res.write(readFileSync(join(__dirname, "../index.html"));
+  res.setHeader("Content-Type", "text/html")
+  res.write(readFileSync(join(__dirname, "../index.html")))
   res.end()
   return
 }
