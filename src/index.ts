@@ -189,6 +189,9 @@ http
       return
     }
 
+    const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress
+    console.log(ip, req.method, req.url)
+
     try {
       if (req.method === "GET" && req.url?.startsWith("/image")) {
         return currentImageHandler(req, res)
