@@ -126,13 +126,7 @@ async function currentQueueHandler(
   res: http.ServerResponse
 ) {
   res.setHeader("Content-Type", "application/json")
-  res.write(
-    JSON.stringify(
-      getQueue().map((item) => ({ ...item, data: "" })),
-      null,
-      2
-    )
-  )
+  res.write(JSON.stringify(getQueue(), null, 2))
   res.end()
   return
 }
