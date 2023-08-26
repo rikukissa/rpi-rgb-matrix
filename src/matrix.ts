@@ -35,6 +35,8 @@ function printQueue(q: typeof queue) {
 }
 
 const ALLOWED_BYTE_SIZE = 32 * 32 * 3
+let queueHandle: ReturnType<typeof queueHandler>
+
 export function pushToQueue(item: Animation | Image) {
   if (item.type === "animation") {
     for (const frame of item.data) {
@@ -54,7 +56,13 @@ export function pushToQueue(item: Animation | Image) {
   }
 
   if (item.immediate) {
+    console.log("Changing queue immediately")
+
     queue = [item]
+
+    if (queueHandle) {
+      queueHandle.syncImmediately()
+    }
   }
 
   queue.push(item)
@@ -83,6 +91,7 @@ function queueHandler() {
 
   let animationFrame = 0
   let currentStartedShowing = Date.now()
+  let syncTimeout: NodeJS.Timeout
 
   function sync() {
     if (queue.length === 0) {
@@ -129,20 +138,29 @@ function queueHandler() {
         // .brightness(Math.max(0, 70 - dimming))
         .drawBuffer(Buffer.of(...frameData.buffer), 32, 32)
       animationFrame++
-      setTimeout(() => matrix.sync(), frameData.delay)
+      syncTimeout = setTimeout(() => matrix.sync(), frameData.delay)
     }
     if (currentQueueItem.type === "image") {
       matrix
         .clear()
         // .brightness(Math.max(0, 70 - dimming))
         .drawBuffer(Buffer.of(...currentQueueItem.data), 32, 32)
-      setTimeout(() => matrix.sync(), 5000)
+      syncTimeout = setTimeout(() => matrix.sync(), 5000)
     }
   }
 
   matrix.afterSync((mat, dt, t) => sync())
 
   matrix.sync()
+
+  return {
+    syncImmediately: () => {
+      if (syncTimeout) {
+        clearTimeout(syncTimeout)
+      }
+      sync()
+    },
+  }
 }
 
 function getMatrix() {
