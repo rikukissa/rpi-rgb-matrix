@@ -56,11 +56,11 @@ export function pushToQueue(item: Animation | Image) {
   }
 
   if (item.immediate) {
-    console.log("Changing queue immediately")
-
+    console.log("Received immediate item")
     queue = [item]
 
     if (queueHandle) {
+      console.log("Changing queue immediately")
       queueHandle.syncImmediately()
     }
   }
@@ -141,6 +141,7 @@ function queueHandler() {
       syncTimeout = setTimeout(() => matrix.sync(), frameData.delay)
     }
     if (currentQueueItem.type === "image") {
+      console.log("Drawing new buffer")
       matrix
         .clear()
         // .brightness(Math.max(0, 70 - dimming))
